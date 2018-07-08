@@ -1,0 +1,123 @@
+version: '3.5'
+
+services:
+  # Golang container
+  # https://hub.docker.com/_/golang/
+  golang:
+    container_name: 'go-hello-golang'
+    # image: 'golang:1.10-alpine'
+    build: './docker/golang'
+    volumes:
+      - './:/go/src/github.com/rkunihiro/go-hello'
+    tty: true
+
+  # DynamoDB container
+  # https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/developerguide/DynamoDBLocal.html
+  dynamodb:
+    container_name: 'go-hello-dynamodb'
+    build: './docker/dynamodb'
+    volumes:
+      - './docker/dynamodb/data:/usr/local/dynamodb/db'
+    ports:
+      - '8000:8000'
+
+  # memcached container
+  # https://hub.docker.com/_/memcached/
+  memcached:
+    container_name: 'go-hello-memcached'
+    image: 'memcached:1.5'
+    ports:
+      - '11211:11211'
+
+  # MongoDB container
+  # https://hub.docker.com/_/mongo/
+  mongo:
+    container_name: 'go-hello-mongo'
+    image: 'mongo:4.0'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'password'
+    volumes:
+      - './docker/mongo/conf/mongod.conf:/etc/mongod.conf'
+      - './docker/mongo/init:/docker-entrypoint-initdb.d'
+      # - './docker/mongo/data:/data/db'
+      - './docker/mongo/logs:/var/log/mongodb'
+    ports:
+      - '27017:27017'
+
+  # mongo-express container
+  # https://hub.docker.com/_/mongo-express/
+  mongo-express:
+    container_name: 'go-hello-mongo-express'
+    image: 'mongo-express:latest'
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: 'root'
+      ME_CONFIG_MONGODB_ADMINPASSWORD: 'password'
+    ports:
+      - '8081:8081'
+    links:
+      - 'mongo:mongo'
+
+  # MySQL Container
+  # https://hub.docker.com/_/mysql/
+  mysql:
+    container_name: 'go-hello-mysql'
+    image: 'mysql:8.0'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'test'
+      MYSQL_USER: 'test'
+      MYSQL_PASSWORD: 'test'
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - './docker/mysql/conf:/etc/mysql/conf.d'
+      # - './docker/mysql/data:/var/lib/mysql'
+      - './docker/mysql/logs:/var/log/mysql'
+      - './docker/mysql/init:/docker-entrypoint-initdb.d'
+    ports:
+      - '3306:3306'
+
+  # phpMyAdmin container
+  # https://hub.docker.com/r/phpmyadmin/phpmyadmin/
+  pma:
+    container_name: 'go-hello-pma'
+    image: 'phpmyadmin/phpmyadmin:latest'
+    environment:
+      PMA_USER: 'root'
+      PMA_PASSWORD: 'password'
+    ports:
+      - '8080:80'
+    links:
+      - 'mysql:db'
+
+  # Redis container
+  # https://hub.docker.com/_/redis/
+  redis:
+    container_name: 'go-hello-redis'
+    image: 'redis:4.0-alpine'
+    volumes:
+      - './docker/redis/data:/data'
+    ports:
+      - '6379:6379'
+
+  # phpRedisAdmin container
+  # https://hub.docker.com/r/erikdubbelboer/phpredisadmin/
+  redis-admin:
+    container_name: 'go-hello-redis-admin'
+    image: 'erikdubbelboer/phpredisadmin'
+    environment:
+      ADMIN_USER: 'root'
+      ADMIN_PASS: 'password'
+      REDIS_1_HOST: 'localhost'
+      REDIS_1_PORT: 6379
+    ports:
+      - '8082:80'
+    links:
+      - 'redis:redis'
+
+  # Ruby container
+  # https://hub.docker.com/_/ruby/
+  ruby:
+    container_name: 'go-hello-ruby'
+    image: 'ruby:2.5-alpine'
+    tty: true
